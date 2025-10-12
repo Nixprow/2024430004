@@ -1,0 +1,16 @@
+digraph G {
+    node [style=filled fillcolor=yellow];
+    200->150;
+    200->201;
+    null150l [shape=point];
+    150->null150l;
+    null150r [shape=point];
+    150->null150r;
+    null201l [shape=point];
+    201->null201l;
+    201->500;
+    null500l [shape=point];
+    500->null500l;
+    null500r [shape=point];
+    500->null500r;
+}
