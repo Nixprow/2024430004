@@ -1,0 +1,5 @@
+El codigo se encarga de implementar el algoritmo de prim, el uso adecuado a dar con el ejecutable seria: ./Actividad1 (y aqui iria el numero de nodo a crear)
+
+Requisitos:
+Graphviz
+Compilador de c++
