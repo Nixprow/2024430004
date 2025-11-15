@@ -1,264 +1,268 @@
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fstream>
+#include <chrono>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
+using namespace std::chrono; //Este nuevo using namespace se encarga de simplificar la sintaxis de chrono con el std
+//Como aclaracion, al no querer usar la libreria de vectores, hice uso de vectores de la forma *(vec + i) lo cual representa normalmente el elemento al que apunta el puntero
 
-//La metodologia a utilizar será listas sobre listas
-void inicializar_matriz_enteros(int **matriz, int n){
-    for (int fila=0;fila<n;fila++){ //En este caso la variable fila, tomaria el valor que tiende a tomar i
-        for (int col=0;col<n;col++){
-            matriz[fila][col] = -1; //En caso de que sea -1 será que no hay conexion o el infinito que se utiliza en dijkstra para determinar que no hay conexion entre los vertices
-        }
+void generar_vector_aleatorio(int *vec, int n){
+    for (int i=0; i<n; i++){ //Recorre cada posicion del vector
+        *(vec + i)= rand() % 10000; //Asigna un numero aleatorio entre 0 y 9999 y si quiere la explicacion del sentido del vec + 1 , es al elemento al que apunta
+
     }
+    
+}
+//Esta funcion se encarga de copiar
+void copiar(int *destino,int *origen, int n){
+    for(int i=0;i<n; i++){
+        *(destino + i)=*(origen + i); //ESto lee el vector de acuerdo al destino y al origen respectivamente y tambien copia elemento por elemento 
+    }
+
 }
 
-//Esta funcion se encargaria de mostrar la matriz anteriormente creada
-void imprimir_matriz(int **matriz, int n){
-    cout<<"\n";
-    for (int fila = 0; fila<n;fila++){
-        for(int col=0;col<n;col++){
-            cout<<matriz[fila][col]<< " "; //Esta linea se encarga de imprimir cada elemento de la matriz
-        }
-        cout<<"\n";
-    }
-}
+//Esta funcion desea mostrar en pantalla los elementos en cuestion
+void mostrar(int *vec,int n,string nombre){
+    //Primero se muestra el nombre del vector
+    cout<<nombre<<endl;
 
-void imprimir_vector_entero(int *vector, int n){
-    cout <<"D[] = [";
-    for (int i=0;i<n;i++){
-        if(vector[i]==9999){//En este caso el numero 9999, simularia el infinito en las operaciones correspondientes a dijkstra
-            cout<<"INFINITO"; // Por lo cual se escribe que es infinito
-        } else {
-            cout << vector[i]; //Imprime la distancia
-
-        }
-        if (i<n -1){
-            cout<<",";
-        }
-    }
-    cout<<"]"<<endl;
-}
-
-int buscar_indice_caracter(string *V, char caracter,int n){
     for(int i=0;i<n;i++){
-        if (V[i][0] == caracter){
-            return i; //En caso de que se encuentre el caracter que buscamos, se retorna la posicion buscada
-        }
-        
+        //En la siguiente linea se muestra el indice y el valor del elemento actual
+        cout<<"a["<<i<<"]="<<*(vec+i)<<" ";
     }
-    return -1; //Este -1 representa el que no existe la posicion a buscar
+
+    cout<<endl<<"--------------------------------------"<<endl;
+
+
 }
 
-void aplicar_dijkstra(string *V,int **M,int n, int vertice_o){
-    int *D = new int[n]; //Este arreglo se encarga de almacenar las distancias minimas
-    bool *S = new bool[n]; //Y este marca los vertices ya visitados
+//primero se crea el algoritmo burbuja correspondiente al cuadratico
+void burbuja(int *vec, int n){
+    //Las siguientes lineas tienen relacion con un avance de lista sobre listas
+    for(int i=0;i<n-1;i++){
+        for(int j=0;j<n-i-1;j++){
+            //Si estan en orden incorrecto, los intercambia
+            if(*(vec + j) > *(vec + j + 1)){
 
-    for (int i =0;i<n;i++){ 
-        D[i]= M[vertice_o][i]; //Esta linea se encarga de copiar las distancias desde el origen
-        if(D[i]== -1 && i!=vertice_o){ //En caso de que no haya conexion y si no es el origen, se le asignará el valor de infinito que lo represento con un 9999
-
-            D[i]= 9999;
-        }
-        S[i]= false; //Esto marca a todos como no visitados
-    }
-    D[vertice_o] = 0; //Esto marca que la distancia hacia el mismo vertice (osea desde A hasta A) es 0
-    S[vertice_o] = true; //Marca el origen como un punto ya visitado
-
-    cout<<"Aplicando algoritmo de Dijkstra..."<<endl;
-    cout<<"Vertice origen: "<<V[vertice_o]<<endl;
-    cout<<"Estado inicial del arreglo D[]:";
-    imprimir_vector_entero(D,n); //Muestra el estado inicial
-
-    for(int count=0;count<n-1;count++){//Itera n-1 veces (ya que no se toma en consideracion el origen)
-        int u =-1; //Variable asignada para el vertice a visitar
-        int min_distancia= 9999; //Variable para la distancia minima (Esta luego cambiará)
-
-        for(int i=0;i<n;i++){ //Este for recorre todos los vertices
-            if(!S[i] && D[i]<min_distancia){
-                min_distancia= D[i]; //Cambia el valor de la distancia minima
-                u=i; //Esta variable se encarga de guardar el indice del vertice
-                
-            }
-
-        }
-
-        if(u==-1) break; //Si no hay vertices alcanzables, termina
-
-        S[u]= true;
-        cout<<"Visitando vertice: "<<V[u]<<" (distancia: "<< D[u]<<")"<<endl;
-
-        for(int v=0;v<n;v++){ //Esto recorre todos los vertices
-            if(!S[v] && M[u][v]!= -1){ //Si no está visitado y hay conexion, calcula la nueva distancia
-
-                int nueva_distancia= D[u]+ M[u][v]; //Esta variable representa el calculo para buscar el minimo, visto en clases
-                if(nueva_distancia< D[v] ){
-                    cout<<" Actualizando "<<V[v]<<": "<<D[v]<<" ->" <<nueva_distancia<<endl;
-                    D[v]= nueva_distancia; //Actualiza la distancia minima
-                }
+                int temp = *(vec + j); //Guarda el valor actual, como un temporal
+                *(vec + j) = *(vec + j + 1); //Luego le asigna el valor siguiente al actual
+                *(vec + j + 1)= temp; //Y por ultimo se asigna el valor temporal al siguiente
             }
         }
 
-        cout<<" Estado actual de D[]:";
-        imprimir_vector_entero(D,n);
+    }
+}
+//Como segundo el algoritmo de insercion
+void insercion (int *vec, int n){
+    for(int i=1;i<n; i++){
+        //Primero se guarda el valor actual a insertar
+        int key = *(vec + i);
+        //j es el indice del elemento anterior al actual
+        int j = i - 1;
 
 
-    } 
-
-    cout<<"Resultados"<<endl;
-    cout<<"Distancias minimas desde"<<V[vertice_o]<< ":"<<endl;
-        for(int i=0; i<n; i++){
-            if(D[i]== 9999){
-                cout<<"  "<<V[vertice_o]<<" ->"<<V[i]<<": No alcanzable"<<endl;
-
-            } else {
-                cout<<"  "<<V[vertice_o]<<" ->"<<V[i]<<D[i]<< endl;
-
-            }
-
+        while(j>=0 && *(vec + j) > key){ 
+            // La siguiente linea se encarga de desplazar el elemento mayor hacia la der
+            *(vec + j + 1) = *(vec + j);
+            // Retrocede para comparar con el siguiente elemento
+            j--;
         }
 
-    cout << "\nContenido final del arreglo D[]:";
-    imprimir_vector_entero(D, n);
-    
-    // Libera la memoria reservada para los arreglos
-    delete[] D;
-    delete[] S;
+        *(vec + j + 1) = key;
+    }
+
 }
+//Tercero tenemos el algoritmo de seleccion
+void seleccion(int *vec, int n){
 
-// Función para liberar la memoria de la matriz y el vector de nodos
-void liberar_memoria(int **matriz, string *V, int n) {
-    if (matriz == nullptr) {
-        return;
-    }
-    
-    // libera primero cada fila de la matriz
-    for(int i = 0; i < n; i++) {
-        delete[] matriz[i];    // Se libera la memoria de cada fila
-    }
-    
-    delete[] matriz;
-    
-    delete[] V;
-}
-
-void generar_grafo_graphviz(int **matriz, string *V, int n) {
-    string outputDot = "grafo.dot"; 
-    string outputPng = "grafo.png"; 
-    
-    //Sintaxis para crear el archivo.dot
-    ofstream outfile;
-    outfile.open(outputDot);
-    if (!outfile.is_open()) {                      // Si no pudo abrir el archivo
-        cout << "Error: No se pudo crear el archivo " << outputDot << endl;
-        return;                                    // Sale de la función
-    }
-
-    
-    outfile << "digraph G {\n";                  
-    outfile << "graph [rankdir=LR]\n";            
-    outfile << "node [style=filled fillcolor=\"#00ff005f\"]\n";  
-    
-    
-    for (int i = 0; i < n; i++) {                 // Recorre cada nodo origen
-        for (int j = 0; j < n; j++) {             // Recorre cada nodo destino
-            if (i != j && matriz[i][j] != -1) {   // Si hay conexión válida (no diagonal)
-                outfile << V[i] << " -> " << V[j] << " [label=" << matriz[i][j] << "];\n";
-            }                                     // Escribe: origen->destino [label=peso];
-        }
-    }
-
-    outfile << "}\n";                             // Cierra la definición del grafo
-    outfile.close();                              // Cierra el archivo
-
-    cout << "+ Archivo Graphviz generado: " << outputDot << endl;
-
-    
-    string comando = "dot -Tpng " + outputDot + " -o " + outputPng;
-    int resultado = system(comando.c_str());      // Ejecuta el comando en el sistema
-
-    // Verifica si Graphviz funcionó correctamente
-    if (resultado == 0) {
-        cout << "+ Imagen del grafo generada: " << outputPng << endl;
-    } else {
-        cout << "+ Error: Graphviz no pudo generar la imagen" << endl;
-        cout << "+ Instale Graphviz con: sudo apt-get install graphviz" << endl;
-    }
-}
-
-
-int main(int argc, char **argv) {
-    
-    if (argc < 2) {                               // Si no hay suficientes argumentos
-        cout << "Uso: ./Actividad1 (n)" << endl;
-        cout << "Donde n es un entero mayor a 2" << endl;
-        return -1;                                 // Termina el programa con error
-    }
-    
-
-    int n = atoi(argv[1]);                        // Convierte string a entero
-    if (n <= 2) {                                 // Si el número es muy pequeño
-        cout << "Error: n debe ser mayor a 2" << endl;
-        return -1;                                 // Termina el programa con error
-    }
-    
-    
-    string *V = new string[n];                    // Reserva memoria para n nodos
-    for (int i = 0; i < n; i++) {                 // Para cada nodo
-        V[i] = 'a' + i;                           // Asigna letras: 'a'+0='a', 'a'+1='b', etc.
-    }
-    
-    cout << "Nodos del grafo: ";
-    for (int i = 0; i < n; i++) {                 // Imprime todos los nodos
-        cout << V[i] << " ";
-    }
-    cout << endl;
-    
-
-    int **matriz;
-    matriz = new int*[n];                         // Crea array de punteros a filas
-    for(int i = 0; i < n; i++) {                  // Para cada fila
-        matriz[i] = new int[n];                   // Crea la fila con n columnas
-    }
-    
-    inicializar_matriz_enteros(matriz, n);        // Inicializa matriz con -1
-    
-
-    cout << "\nIngrese la matriz de adyacencia " << n << "x" << n << ":" << endl;
-    cout << "Use -1 para indicar que no hay conexion entre nodos" << endl;
-    
-    for (int fila = 0; fila < n; fila++) {        // Recorre cada fila
-        for (int col = 0; col < n; col++) {       // Recorre cada columna
-            if (fila == col) {                    // Si es la diagonal principal
-                matriz[fila][col] = 0;            // Distancia a sí mismo es 0
-            } else {                              // Si no es la diagonal
-                cout << "Distancia " << V[fila] << " -> " << V[col] << ": ";
-                cin >> matriz[fila][col];         // Lee la distancia del usuario
+    for(int i = 0;i<n-1; i++){
+        //Se supone que el menor está en la posicion actual
+        int min_id= i;
+        //Busca el elemento menor en el resto del vector
+        for(int j = i + 1; j < n; j++){
+            if(*(vec+ j) < *(vec+ min_id)){
+                min_id = j;
             }
         }
+
+        int temp = *(vec + min_id); //PRimero se guarda el valor menor
+        *(vec + min_id)= *(vec + i); //Se le asigna el valor actual al del menor
+        *(vec + i) = temp; //Pone el menor en la posicion actual
     }
 
-    cout << "\nMatriz de adyacencia ingresada:" << endl;
-    imprimir_matriz(matriz, n);
-    
-    
-    char vertice_origen_char;
-    cout << "\nIngrese el vertice origen: ";
-    cin >> vertice_origen_char;                   // Lee un caracter (a, b, c, ...)
-    
-    
-    int vertice_origen = buscar_indice_caracter(V, vertice_origen_char, n);
-    if (vertice_origen == -1) {                   // Si retorna -1, no existe
-        cout << "Error: vertice origen no encontrado" << endl;
-        liberar_memoria(matriz, V, n);            // Libera memoria antes de terminar
-        return -1;                                 // Termina el programa con error
-    }
-    
+}
+//Aqui se comienza con la busqueda interna de los logaritmicos
+void shellsort (int *vec, int n){
+    //COmienza con un gap reduciendo a la mitad en cada iteracion
+    for(int gap = n/2;gap > 0;gap /=2){
+        // Aplica la insercion en el gap actual
+        for(int i= gap; i < n; i++){
+            //Se guarda el elemento en una variable temporal o aux
+            int temp = *(vec + i);
+            int j = i; //Indice para el desplazamiento
+            
+            //Desplaza elementos mayores que temp segun el gap
+            while (j >= gap && *(vec + j - gap) > temp){
+                //Mueve el elemento mayor hacia adelante
 
-    aplicar_dijkstra(V, matriz, n, vertice_origen);
-    generar_grafo_graphviz(matriz, V, n);
-    liberar_memoria(matriz, V, n);
+                *(vec + j) = *(vec + j -gap);
+                //Retrocede un salto
+                j -= gap;
+            }
+            *(vec + j) = temp;
+
+        }   
+
+    }
+
+}
+//Primero se hace la funcion de particion para el quicksort
+int particion(int *vec, int inicio, int fin){
+    //Elige el ultimo elemento como pivote
+    int pivote = *(vec + fin);
+    //Indice el cual marca la posicion del ultimo elemento menor que el pivote
+    int i = inicio - 1;
+
+    for(int j = inicio; j< fin; j++){
+
+        if(*(vec + j) <= pivote){
+            i++;
+            //Aqui se intercambia el elemento actual con la posicion i en la que vaya
+            int temp= *(vec + i);
+            *(vec + i) = *(vec + j);
+            *(vec + j) = temp;
+
+        }
+    }
+
+    //Se encarga de colocar el pivote en la ultima posicion luego de todos los valores menoresw
+    int temp= *(vec + i + 1);
+    *(vec + i + 1) = *(vec + fin);
+    *(vec + fin) = temp;
+
+    return i + 1;
+
+}
+//Algoritmo quicksort como tal (se hará uso de la particion creada exclusivamente para quicksort)
+void quicksort(int *vec, int inicio, int fin){
+    //Como caso principal tenemos que el segmento tiene más de un elemento
+    if (inicio<fin){
+        //Primero se obtiene la posicion del piv despues de la particion
+        int pos_pivote = particion(vec,inicio, fin);
+        quicksort(vec, inicio, pos_pivote - 1);
+        quicksort(vec, pos_pivote + 1, fin);
+    }
+}
+
+void quicksort_wrapper(int *vec, int n){
     
-    return 0;                                    
+    quicksort(vec,0, n-1);
+}
+
+int main(int argc, char* argv[]){
+
+    if (argc != 3){
+
+        cout<<"Uso: "<<argv[0] <<" N VER"<<endl;
+        cout<<"N:(escribir numero de elementos positivos)"<<endl;
+        cout<<"VER: 's' mostrar,'n' no mostrar"<<endl;
+        return 1; 
+    }
+    //Convierte el primer argumento de string a entero
+    int n = atoi(argv[1]);
+
+    string ver = argv[2];
+
+
+    //Primero se verifica que N sea un numero positivo
+    if(n<=0){
+        cout<<"Error: N debe ser positivo"<<endl;
+        return 1;
+    }
+    //Inicializa el generador de numeros aleatorios con la hora actual como semilla
+    srand(time(0));
+
+    //Reserva  memoria dinamica para 6 vectores de n elementos cada uno
+    int* original = new int[n];
+    int* copia_burbuja = new int[n];
+    int* copia_insercion = new int[n];
+    int* copia_seleccion = new int[n];
+    int* copia_shellsort = new int[n];
+    int* copia_quicksort = new int[n];
+
+    //Se llena el vector original con numeros aleatorios
+    generar_vector_aleatorio(original, n);
+
+    if(ver == "s"){
+        mostrar(original, n,"Original:");
+
+    }
+
+    copiar(copia_burbuja,original,n);
+    copiar(copia_insercion,original,n);
+    copiar(copia_seleccion,original, n);
+    copiar(copia_shellsort,original, n);
+    copiar(copia_quicksort, original,n);
+
+    //Las siguientes funciones o lineas se encargaran de medir el tiempo de ejecucion de los algoritmos
+
+    //Primero el burbuja
+    auto inicio_burbuja =high_resolution_clock::now(); //Esta linea registra el tiempo inicial
+    burbuja(copia_burbuja,n);
+    auto fin_burbuja = high_resolution_clock::now();//Registra el tiempo final
+    long long tiempo_burbuja= duration_cast<milliseconds>(fin_burbuja - inicio_burbuja).count();
+
+    //Luego el de insercion
+    auto inicio_insercion =high_resolution_clock::now(); //Esta linea registra el tiempo inicial
+    insercion(copia_insercion,n);
+    auto fin_insercion = high_resolution_clock::now();//Registra el tiempo final
+    long long tiempo_insercion= duration_cast<milliseconds>(fin_insercion - inicio_insercion).count();
+
+    //Luego el de Seleccion
+    auto inicio_seleccion =high_resolution_clock::now(); //Esta linea registra el tiempo inicial
+    seleccion(copia_seleccion,n);
+    auto fin_seleccion = high_resolution_clock::now();//Registra el tiempo final
+    long long tiempo_seleccion= duration_cast<milliseconds>(fin_seleccion - inicio_seleccion).count();
+
+    //Despues Shellsort
+    auto inicio_shellsort =high_resolution_clock::now(); //Esta linea registra el tiempo inicial
+    shellsort(copia_shellsort,n);
+    auto fin_shellsort = high_resolution_clock::now();//Registra el tiempo final
+    long long tiempo_shellsort= duration_cast<milliseconds>(fin_shellsort - inicio_shellsort).count();
+
+    //Y por ultimo Quicksort
+    auto inicio_quicksort =high_resolution_clock::now(); //Esta linea registra el tiempo inicial
+    quicksort_wrapper(copia_quicksort,n);
+    auto fin_quicksort = high_resolution_clock::now();//Registra el tiempo final
+    long long tiempo_quicksort= duration_cast<milliseconds>(fin_quicksort - inicio_quicksort).count();
+
+    //Las siguientes tablas comparativas de tiempos de ejecucion
+
+    cout<<"-----------------------------------------------"<<endl;
+    cout<<"Metodo\t\t|Tiempo"<<endl;
+    cout<<"Burbuja\t\t|"<<tiempo_burbuja<<" ms"<<endl;
+    cout<<"Insercion\t|"<<tiempo_insercion<<" ms"<<endl;
+    cout<<"Seleccion\t|"<<tiempo_seleccion<<" ms"<<endl;
+    cout<<"Shellsort\t|"<<tiempo_shellsort<<" ms"<<endl;
+    cout<<"Quicksort\t|"<<tiempo_quicksort<<" ms"<<endl;
+    cout<<"-------------------------------------------------"<<endl;
+
+    if(ver == "s"){
+        mostrar(copia_burbuja,n,"Burbuja:");
+        mostrar(copia_insercion,n,"Insercion:");
+        mostrar(copia_seleccion,n,"Seleccion:");
+        mostrar(copia_shellsort,n,"Shellsort:");
+        mostrar(copia_quicksort,n,"Quicksort:");
+    }
+    //Las siguientes lineas liberan la memoria utilizada por el new[] (no hice la funcion para eliminar esa memoria en este caso)
+    delete[] original;
+    delete[] copia_burbuja;
+    delete[] copia_insercion;
+    delete[] copia_seleccion;
+    delete[] copia_shellsort;
+    delete[] copia_quicksort;
+
+    
+    return 0;
 }
