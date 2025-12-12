@@ -13,7 +13,7 @@ const int LIMITE_VISUALIZACION = 80;
 
 //No quise usar cmath para el max o el min, así que hice funciones basadas en if para poder simularlas de alguna manera
 
-int max3(int a, int b, int c) {
+int max_(int a, int b, int c) {
     int max_val = a;
     if (b > max_val) max_val = b;
     if (c > max_val) max_val = c;
@@ -43,7 +43,7 @@ int stringToInt(const char* str) {
 }
 
 
-//Liberar memoria asignada en punteros para la matriz U
+//Libera memoria asignada en punteros para la matriz U
 void liberarMatrizU() {
     if (matrizU != nullptr) {
         for (int i = 0; i < tamAlfabeto; i++) {
@@ -60,6 +60,7 @@ int indiceEnAlfabeto(char c) {
     }
     return -1;
 }
+
 //Esto verifica la posicion dentro de la matriz U
 int obtenerPuntaje(char a, char b) {
     int idxA = indiceEnAlfabeto(a);
@@ -67,6 +68,7 @@ int obtenerPuntaje(char a, char b) {
     if (idxA == -1 || idxB == -1) return 0;
     return matrizU[idxA][idxB];
 }
+
 //Esto lee la secuencia
 string leerSecuencia(const string& nombreArchivo) {
     ifstream archivo(nombreArchivo);
@@ -75,6 +77,7 @@ string leerSecuencia(const string& nombreArchivo) {
         cerr << "Error: No se pudo abrir el archivo de secuencia " << nombreArchivo << endl;
         return "";
     }
+    //Aqui se salta la primera linea del archivo FASTA 
     string linea;
     while (getline(archivo, linea)) {
         if (!linea.empty() && linea[0] == '>') {
@@ -149,12 +152,13 @@ void needlemanWunsch(const string& sec1, const string& sec2,string& alineado1, s
             int match_mismatch = F[i-1][j-1] + obtenerPuntaje(sec1[i-1], sec2[j-1]);
             int arriba = F[i-1][j] + GAP;
             int izq = F[i][j-1] + GAP;
-            F[i][j] = max3(match_mismatch, arriba, izq);
+            F[i][j] = max_(match_mismatch, arriba, izq);
         }
     }
+
     //El max se almacena en la siguiente variable
     puntaje = F[n][m]; 
-    //Estas 4 lineas siguientes inicializan en la esquina inferior derecha de la matriz y las variables de la alineacion vacias
+    
     int i = n; 
     int j = m;
     alineado1 = "";
@@ -242,7 +246,7 @@ void mostrarAlineamientoPorBloques(const string& alineado1, const string& alinea
     }
 }
 
-//Calcula estadisticas segundo los matches, mismatches o gaps
+//Calcula estadisticas segun los matches, mismatches o gaps
 void calcularEstadisticas(const string& alineado1, const string& alineado2,int& matches, int& mismatches, int& gaps, double& similitud_porcentaje) {
     //las 3 variables se inicializan en 0
     matches = mismatches = gaps = 0;
@@ -274,7 +278,7 @@ void generarGraphviz(const string& alineado1, const string& alineado2, int punta
         return;
     }
     //Esto secciona el graphviz, ya que si la secuencia es extremadamente larga no la genera
-    int mostrar = min(150, alineado1.length());
+    int mostrar = min(500, alineado1.length());
     string alineado1_short = alineado1.substr(0, mostrar);
     string alineado2_short = alineado2.substr(0, mostrar);
     string marcas_short = generarMarcas(alineado1_short, alineado2_short);
